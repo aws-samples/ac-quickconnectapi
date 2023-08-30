@@ -13,7 +13,7 @@
     
         
     <script src="js/quickconnect.js"></script>
-    <script src="js/aws-sdk.min-qc.js"></script>
+    <script src="js/aws-sdk-all.js"></script>
     
     <script src=https://cdn.jsdelivr.net/npm/dna.js@1.6/dist/dna.min.js></script>
     <script src=https://cdn.jsdelivr.net/npm/web-ignition@1.2/dist/library.min.js></script>
@@ -106,7 +106,13 @@
     }
     .btnOptions{
         width: 200px;
+    }
+     .spnSearch {
+        top: 10px;
+        position: relative;
+        margin-right: 10px;
     }    
+        
     </style>
     
 </head>
@@ -117,14 +123,16 @@
     <section id="section-rp-main">
         <form>
          <fieldset>
-            <legend>Amazon Connect Routing Profile APIs</legend>
+            <legend>Amazon Connect Quick Connect APIs</legend>
             <div>
                <input type="button" id="awsConfiguration" value="AWS Configurations">
                <input type="button" id="listQC" value="List all quick connects">
                <input type="button" id="createQC" value="Create quick connect">
                <input type="button" id="modifyQC" value="Modify quick connect">
                <input type="button" id="deleteQC" value="Delete quick connect">
-               <input type="button" id="describeQC" value="Describe quick connect">               
+               <input type="button" id="describeQC" value="Describe quick connect">       
+               <input type="button" id="searchQC" value="Search quick connect">
+               <input type="button" id="searchQCByTags" value="Search by Tags">
             </div>               
          </fieldset>
          </form>
@@ -208,12 +216,84 @@
 
     </div>    
     <!--  This is the end of add queue dialog -->    
+    <!--  This is the beginning of search QC dialog -->
+    <div id="dlgSearchQC" title="QC Details">
+              <form name="frmQCSearch" id="frmQCSearch">
+              <fieldset class="agent-info">
+                <legend>QC Search</legend>
+                <div>
+                  <table class='tblDetails' style="width:90%;">
+                    <tbody>
+                      <tr>
+                        <td> Name : </td>
+                        <td><input name="QCSearchName" type="text" id="QCSearchName" placeholder="Name"></td>
+                        <td> Search Type :</td>
+                        <td>
+                            <select name="QCSearchType" id="QCSearchType">
+                                <option value="STARTS_WITH"> STARTS_WITH </option>
+                                <option value="CONTAINS"> CONTAINS </option> 
+                                <option value="EXACT"> EXACT </option>  
+                            </select> 
+                       </td>
+                      </tr>
+                      <tr>
+                        <td> Name : </td>
+                        <td><input name="QCSearchName2" type="text" id="QCSearchName2" placeholder="Name"></td>
+                        <td> Search Type :</td>
+                        <td>
+                            <select name="QCSearchType2" id="QCSearchType2">
+                                <option value="STARTS_WITH"> STARTS_WITH </option>
+                                <option value="CONTAINS"> CONTAINS </option> 
+                                <option value="EXACT"> EXACT </option>  
+                            </select> 
+                       </td>
+                      </tr>
+                     </tbody>
+                   </table>
+                   <button class="btn btnOptions" type="button" id="btnSearchQC" > Search QC</button>
+                </div>
+               </fieldset>
+             </form>
+
+    </div>    
+    <!--  This is the end of search QC dialog -->    
+
+<!--  This is the beginning of search QC by tag dialog -->
+    <div id="dlgSearchQCByTags" title="QC Details">
+              <form name="frmQCSearchByTags" id="frmQCSearchByTags">
+              <fieldset class="agent-info">
+                <legend><span class="spnSearch">QC Search</span>
+                             <select name="QCSearchType3" id="QCSearchType3">
+                                <option value="OrConditions"> OrConditions </option>
+                                <option value="AndConditions"> AndConditions </option> 
+                                <option value="TagCondition"> TagCondition </option>  
+                            </select>                 
+                </legend>
+                <div>
+                  <table class='tblDetails' id="tblQCSearchByTags" style="width:90%;">
+                    <thead><tr><th>Tag Name</th><th>Tag Value</th><th>Delete</th></tr></thead>
+                    <tbody>                      
+                      <tr>
+                        <td><input name="txtTagName" type="text" class ="txtTagName" id="txtTagName" placeholder="Tag Name"></td>
+                        <td><input name="txtTagValue" type="text" class="txtTagValue" id="txtTagValue" placeholder="Tab Value"></td>
+                        <td><input name="btnDeleteRow" type="button" class="btnDeleteRow" id="btnDeleteRow" value="Delete"></td>
+                      </tr>
+                     </tbody>
+                   </table>
+                   <button class="btn btnOptions" type="button" id="btnAddRow" > Add condition</button>                   
+                   <button class="btn btnOptions" type="button" id="btnSearchQCsByTags" > Search QC</button>
+                </div>
+               </fieldset>
+             </form>
+
+    </div>    
+    <!--  This is the end of search QC by tag dialog -->    
     
     <!-- Beginning of AWS Configurations -->
     <div id="configDialog" title="AWS IAM Credentials">
          <form  name="AWSIAMInfo" id="AWSIAMInfo" autocomplete="on">
               <fieldset class="config-info">
-                   <legend>Enter AWS credentials for routing profile management</legend>
+                   <legend>Enter AWS credentials for quick connects management</legend>
                       <div>
                       <table>
                         <tbody>

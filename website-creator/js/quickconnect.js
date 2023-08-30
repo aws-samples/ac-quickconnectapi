@@ -58,7 +58,7 @@ function setupAll() {
     $("#createQC").click(() => {
         currentOperation=GCREATE;
         clear_form_elements('#qcForm');
-        $("#btnCreateRP").show();
+        $("#btnCreate").show();
         $("#btnRename").hide();
         $("#btnUpdateConfig").hide();
     	$('#qcQueueList').show();
@@ -93,6 +93,41 @@ function setupAll() {
         } else {
             $( "#configDialog" ).dialog( "open" );
         }
+    });
+
+    $("#searchQC").click(() => {
+      $( "#dlgSearchQC" ).dialog( "open" );
+    });
+    
+    $("#btnSearchQC").click(() => {
+      btnSearchQC();
+    });
+    
+    $("#searchQCByTags").click(() => {
+      $( "#dlgSearchQCByTags" ).dialog( "open" );
+    });
+    
+    $("#btnSearchQCsByTags").click(() => {
+      btnSearchQCsByTags();
+    });
+    $("#btnAddRow").click(() => {
+      btnAddRow();
+    });
+
+    $("#dlgSearchQCByTags").dialog({
+        autoOpen: false,
+        width: 800,
+        modal: true,
+        resizable: false,
+        height: "auto"        
+        
+    });
+    $('#dlgSearchQC').dialog({
+        autoOpen: false,
+        width: 850,
+        modal: true,
+        resizable: false,
+        height: "auto"        
     });
        
     $("#dialog").dialog({
@@ -195,6 +230,108 @@ function setupAll() {
     });    
     getListQuickConnects();
         
+}
+
+function btnAddRow(){
+    try{
+        var trow = '<tr><td><input name="txtTagName" class ="txtTagName" type="text" id="txtTagName" placeholder="Tag Name"></td>"';
+        trow += '<td><input name="txtTagValue"  class="txtTagValue" type="text" id="txtTagValue" placeholder="Tab Value"></td>';
+        trow += '<td><input name="btnDeleteRow" type="button" class="btnDeleteRow" id="btnDeleteRow" value="Delete"></tr>'; 
+        $('#tblQCSearchByTags tbody').append(trow);        
+    } catch(e) {
+        console.log(e);        
+    }
+}
+
+$(document).on("click",'.btnDeleteRow',function(){
+   $(this).closest('tr').remove(); 
+});
+
+async function  btnSearchQCsByTags(){
+    try{
+            handleWindow(true, '');
+            var searchFilter = {};
+            searchFilter['TagFilter'] = {};
+            var conditionType = $('#QCSearchType3').val();       
+            //var conditionType = "TagCondition";
+            //var conditionType = "AndConditions";
+            //var conditionType = "OrConditions";
+            searchFilter['TagFilter'][conditionType] = {};
+            searchFilter['TagFilter'][conditionType] = [];
+            
+            $('#tblQCSearchByTags > tbody  > tr').each(function(index, tr) { 
+                var tag = {};
+                var tagKey = $(tr).find('.txtTagName').val();
+                var tagValue = $(tr).find('.txtTagValue').val();
+                tag = tagCondition(tagKey, tagValue);
+                var conditions = [];
+                conditions.push(tag);
+                
+                if(conditionType === 'OrConditions'){
+                    searchFilter['TagFilter'][conditionType].push(conditions);  
+                } else if(conditionType === 'AndConditions'){
+                    searchFilter['TagFilter'][conditionType].push(tag);
+                }
+                else{
+                    searchFilter['TagFilter'][conditionType] = tag;
+                }
+                
+            });                        
+            var ph = await searchQuickConnects(dlgInstanceId, null, 100, searchFilter, null);
+            console.log(ph);        
+            formatJSON(ph, '#rpFormatted');
+            $( "#dlgSearchQCByTags" ).dialog( "close" );
+            handleWindow(false, '');
+            
+               
+    } catch(e) {
+        console.log(e);        
+    }
+    
+}
+
+
+async function btnSearchQC(){
+    try {
+        handleWindow(true, '');
+        var searchCriteria = {};        
+        var conditions = [];
+        var sc1 = {};        
+        var cond2 = [];        
+        cond2.push(condition('StringCondition', 'Name', $("#QCSearchName").val(), 'ComparisonType', $("#QCSearchType").val()));
+        if($("#QCSearchName2").val().length > 1)
+            cond2.push(condition('StringCondition', 'Name', $("#QCSearchName2").val(), 'ComparisonType', $("#QCSearchType2").val()));
+        sc1['OrConditions'] = cond2;
+        conditions.push(sc1);
+        searchCriteria['OrConditions'] = conditions;
+        var ph = await searchQuickConnects(dlgInstanceId, null, 100, null, searchCriteria);
+        console.log(ph);        
+        formatJSON(ph, '#rpFormatted');
+        $( "#dlgSearchQC" ).dialog( "close" );
+        handleWindow(false, '');
+    } catch(e) {
+        console.log(e);        
+        handleWindow(false, '');
+        showResults(e);
+    }
+}
+
+function condition(cond, fieldName, fieldValue, type, typeDetails) {
+    var sc = {};
+    sc[cond] = {};
+    if(fieldName)
+        sc[cond]['FieldName'] = fieldName;
+    sc[cond]['Value'] = fieldValue;
+    sc[cond][type] = typeDetails;
+    return sc;
+}
+
+function tagCondition(tagName, tagValue, tagConditionOperator) {
+    var sc = {};    
+    sc['TagKey'] = tagName;
+    sc['TagValue'] = tagValue; 
+    //sc['TagConditionOperator'] = tagConditionOperator;
+    return sc;
 }
 
 async function renameQC() {
@@ -537,14 +674,27 @@ const listContactFlows = (instanceId) => {
         });
     }
 
+const searchQuickConnects = (instanceId, nextToken, maxResults, searchFilter, searchCriteria) => {
+    return new Promise((resolve,reject) => {
+           var params = {InstanceId : instanceId, NextToken : nextToken, MaxResults : maxResults, SearchFilter: searchFilter, SearchCriteria: searchCriteria};       
+           console.log(params);
+           connect.searchQuickConnects(params, function (err, res) {        
+                if (err) 
+                     reject(err);
+                 else 
+                    resolve(res);
+            });
+        });
+    }
+
 function showResults(message){
     $('#resultSpan').text(message);
     $("#resultDialog").dialog("open");
 }
 
 function loadConnectAPIs() {
-	connect = new AWS.Connect({ region: "us-west-2", endpoint: "https://91am9nwnzk.execute-api.us-west-2.amazonaws.com/Prod" }, {apiVersion: '2017-08-08'});
-	//connect = new AWS.Connect({ region: dlgSourceRegion});
+	//connect = new AWS.Connect({ region: "us-west-2", endpoint: "https://91am9nwnzk.execute-api.us-west-2.amazonaws.com/Prod" }, {apiVersion: '2017-08-08'});
+	connect = new AWS.Connect({ region: dlgSourceRegion});
 }
 
 
